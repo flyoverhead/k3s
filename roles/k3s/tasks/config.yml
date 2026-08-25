@@ -110,7 +110,7 @@
 
         - name: config | kube-vip resources
           ansible.builtin.include_role:
-            name: resource
+            name: resources
           vars:
             resources_definition: '{{ kube_vip_resources }}'
 

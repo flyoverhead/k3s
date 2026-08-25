@@ -13,13 +13,13 @@
 
         - name: apply kube-vip resources
           ansible.builtin.include_role:
-            name: resource
+            name: resources
           vars:
             resources_definition: '{{ kube_vip_resources }}'
 
         - name: apply gateway api resources
           ansible.builtin.include_role:
-            name: resource
+            name: resources
           vars:
             resources_definition: '{{ gateway_api_resources }}'
 
@@ -31,7 +31,7 @@
 
         - name: apply cilium resources
           ansible.builtin.include_role:
-            name: resource
+            name: resources
           vars:
             resources_definition: '{{ cilium_resources }}'
 
@@ -52,7 +52,7 @@
 
             - name: apply csi smb resources
               ansible.builtin.include_role:
-                name: resource
+                name: resources
               vars:
                 resources_definition: '{{ csi_smb_resources }}'
 
@@ -67,7 +67,7 @@
 
             - name: apply cert-manager resources
               ansible.builtin.include_role:
-                name: resource
+                name: resources
               vars:
                 resources_definition: '{{ cert_manager_resources }}'
 
@@ -95,7 +95,7 @@
 
             - name: apply coredns resources
               ansible.builtin.include_role:
-                name: resource
+                name: resources
               vars:
                 resources_definition: '{{ coredns_resources }}'
 
@@ -107,7 +107,7 @@
 
             - name: apply pihole resources
               ansible.builtin.include_role:
-                name: resource
+                name: resources
               vars:
                 resources_definition: '{{ pihole_resources }}'
 
@@ -142,7 +142,7 @@
 
             - name: apply minio resources
               ansible.builtin.include_role:
-                name: resource
+                name: resources
               vars:
                 resources_definition: '{{ minio_resources }}'
 
@@ -176,7 +176,7 @@
 
             - name: apply registry resources
               ansible.builtin.include_role:
-                name: resource
+                name: resources
               vars:
                 resources_definition: '{{ registry_resources }}'
 
@@ -191,7 +191,7 @@
 
             - name: apply gitea resources
               ansible.builtin.include_role:
-                name: resource
+                name: resources
               vars:
                 resources_definition: '{{ gitea_resources }}'
 
