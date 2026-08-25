@@ -47,6 +47,7 @@
       ansible.builtin.wait_for:
         path: /etc/rancher/k3s/k3s.yaml
         state: present
+      check_mode: false
 
     - name: config | get k3s.yaml file content
       become: true

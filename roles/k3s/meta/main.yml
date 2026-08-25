@@ -1,16 +1,20 @@
 ---
 
 galaxy_info:
+  role_name: k3s
+  namespace: flyoverhead
   author: flyoverhead
-  description: K3S service deployment and management
-  license: GNU
-  min_ansible_version: '2.15'
-  galaxy_tags:
-    - k3s
+  description: K3s cluster node deployment and management
+  license: GPL-3.0-only
+  min_ansible_version: '2.16'
   platforms:
     - name: Debian
       versions:
         - bookworm
+        - trixie
+  galaxy_tags:
+    - k3s
+    - kubernetes
 
 dependencies:
   - role: resources

@@ -31,6 +31,10 @@
     k3s --version
   register: k3s_version_info
   changed_when: false
+  # ansible.builtin.command declares no check mode support, so a check run
+  # skips it and the set_fact below aborts on stdout_lines. It only reads a
+  # version.
+  check_mode: false
   when:
     - k3s_installed
 
@@ -125,3 +129,9 @@
     - name: detect | set k3s_token fact
       ansible.builtin.set_fact:
         k3s_token: '{{ k3s_node_token.content | b64decode | trim }}'
+
+- name: detect | set k3s_cluster_size fact
+  ansible.builtin.set_fact:
+    k3s_cluster_size: >-
+      {{ (groups[k3s_server_group] | default([]) | length) +
+      (groups[k3s_agent_group] | default([]) | length) }}

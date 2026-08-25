@@ -36,5 +36,5 @@
     owner: root
     group: root
     mode: '0755'
-  register: archive_download
-  until: archive_download is succeeded
+  register: k3s_archive_download
+  until: k3s_archive_download is succeeded

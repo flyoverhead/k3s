@@ -1,14 +1,19 @@
 ---
 
 galaxy_info:
+  role_name: helm
+  namespace: flyoverhead
   author: flyoverhead
-  description: Helm charts deployment
-  license: GNU
-  min_ansible_version: '2.15'
-  galaxy_tags:
-    - k3s
-    - helm
+  description: Helm chart deployment against a k3s cluster
+  license: GPL-3.0-only
+  min_ansible_version: '2.16'
   platforms:
     - name: Debian
       versions:
         - bookworm
+        - trixie
+  galaxy_tags:
+    - helm
+    - kubernetes
+
+dependencies: []
