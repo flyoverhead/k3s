@@ -1,0 +1,63 @@
+---
+
+- name: uninstall | disable k3s service
+  become: true
+  ansible.builtin.systemd_service:
+    enabled: false
+    name: k3s
+    state: stopped
+  failed_when: false
+
+- name: uninstall | remove k3s.service
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/system/k3s.service
+    state: absent
+
+- name: uninstall | disable k3s
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reexec: true
+    daemon_reload: true
+
+- name: uninstall | remove k3s binary
+  become: true
+  ansible.builtin.file:
+    path: /usr/local/bin/k3s
+    state: absent
+
+- name: uninstall | get k3s mounts
+  ansible.builtin.set_fact:
+    k3s_mounts: >-
+      {{ ansible_facts.mounts |
+      selectattr('mount', 'search', 'k3s|kubelet|netns|rancher') |
+      map(attribute='mount') }}
+
+- name: uninstall | unmount k3s directories
+  become: true
+  ansible.posix.mount:
+    path: '{{ item }}'
+    state: unmounted
+  loop: '{{ k3s_mounts }}'
+
+- name: uninstall | remove k3s directories
+  become: true
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: absent
+  loop:
+    - /etc/rancher
+    - /var/lib/rancher
+
+- name: uninstall | remove local cluster config
+  become: true
+  become_user: '{{ k3s_controller_config.owner }}'
+  delegate_to: '{{ k3s_controller_config.address }}'
+  run_once: true
+  ansible.builtin.file:
+    path: '{{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}'
+    state: absent
+
+- name: uninstall | reboot node
+  become: true
+  ansible.builtin.reboot:

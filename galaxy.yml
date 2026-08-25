@@ -1,0 +1,20 @@
+---
+
+namespace: flyoverhead
+name: k8s
+version: 1.0.0
+readme: README.md
+authors:
+  - flyoverhead
+description: Ansible collection for k3s cluster deployment and management
+tags:
+  - helm
+  - k3s
+  - kubernetes
+  - patches
+  - resources
+dependencies:
+  kubernetes.core: '>=3.4.3'
+
+repository: https://github.com/flyoverhead/k3s.git
+issues: https://github.com/flyoverhead/k3s.git/issues

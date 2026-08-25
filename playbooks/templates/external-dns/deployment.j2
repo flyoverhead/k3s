@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  log.include: |
+    log
+  mydomain.server: |
+    {{ dns_config.domain }}.:53 {
+      forward . {{ dns_config.upstream }}
+    }

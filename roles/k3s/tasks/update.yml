@@ -1,0 +1,25 @@
+---
+
+- name: update | stop k3s service
+  become: true
+  ansible.builtin.systemd_service:
+    name: k3s.service
+    state: stopped
+
+- name: update | download archive
+  become: true
+  ansible.builtin.get_url:
+    url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/{{ k3s_binary }}
+    checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/sha256sum-{{ k3s_arch }}.txt
+    dest: /usr/local/bin/k3s
+    force: true
+    owner: root
+    group: root
+    mode: '0755'
+  register: archive_download
+  until: archive_download is succeeded
+  notify:
+    - k3s | restart
+
+- name: handlers
+  ansible.builtin.meta: flush_handlers

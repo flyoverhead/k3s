@@ -1,0 +1,14 @@
+---
+
+galaxy_info:
+  author: flyoverhead
+  description: Helm charts deployment
+  license: GNU
+  min_ansible_version: '2.15'
+  galaxy_tags:
+    - k3s
+    - helm
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm

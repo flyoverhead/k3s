@@ -1,0 +1,85 @@
+actions:
+  enabled: true
+  provisioning:
+    enabled: true
+  statefulset:
+    actRunner:
+      repository: gitea/act_runner
+      tag: {{ gitea_runner_version }}
+      pullPolicy: IfNotPresent
+      config: |
+        log:
+          level: info
+        cache:
+          enabled: true
+        runner:
+          labels:
+            - "ubuntu-22.04:docker://gitea/runner-images:ubuntu-22.04-full"
+
+gitea:
+  admin:
+    existingSecret: gitea-secret
+  config:
+    database:
+      DB_TYPE: postgres
+    indexer:
+      ISSUE_INDEXER_TYPE: bleve
+      REPO_INDEXER_ENABLED: true
+    server:
+      DOMAIN: gitea.{{ dns_config.domain }}
+      ROOT_URL: https://gitea.{{ dns_config.domain }}
+      SSH_DOMAIN: gitea-ssh.{{ dns_config.domain }}
+    service:
+      DISABLE_REGISTRATION: true
+    # storage:
+    #   MINIO_ACCESS_KEY_ID: {{ minio_service_account.access_key }}
+    #   MINIO_BUCKET: gitea
+    #   MINIO_ENDPOINT: \{\{ minio_address \}\}:9000
+    #   MINIO_SECRET_ACCESS_KEY: {{ minio_service_account.secret_key }}
+    #   STORAGE_TYPE: minio
+
+namespace: gitea
+
+persistence:
+  enabled: true
+  create: true
+  mount: true
+  storageClass: {{ smb_default_share }}
+  annotations:
+    helm.sh/resource-policy: keep
+    volume.beta.kubernetes.io/storage-provisioner: smb.csi.k8s.io
+    volume.kubernetes.io/storage-provisioner: smb.csi.k8s.io
+
+postgresql:
+  enabled: true
+  global:
+    postgresql:
+      auth:
+        password: {{ gitea_db_password }}
+        database: gitea
+        username: gitea
+
+postgresql-ha:
+  enabled: false
+
+redis:
+  enabled: true
+  global:
+    redis:
+      password: {{ gitea_db_password }}
+
+redis-cluster:
+  enabled: false
+
+replicaCount: 1
+
+service:
+  http:
+    type: ClusterIP
+    port: 3000
+  ssh:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: gitea-ssh.{{ dns_config.domain }}
+    externalTrafficPolicy: Cluster
+    port: 22
+    type: LoadBalancer

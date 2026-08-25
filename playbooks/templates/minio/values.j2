@@ -1,0 +1,66 @@
+buckets:
+  - name: public
+    policy: public
+    versioning: true
+  - name: registry
+    policy: public
+    versioning: true
+  - name: gitea
+    policy: public
+    versioning: true
+
+consoleService:
+  type: ClusterIP
+  port: 9001
+
+drivesPerNode: 1
+
+existingSecret: root-user-secret
+
+replicas: 2
+
+image:
+  repository: quay.io/minio/minio
+  tag: {{ minio_version }}
+  pullPolicy: IfNotPresent
+
+mcImage:
+  repository: quay.io/minio/mc
+  tag: {{ minio_mc_version }}
+  pullPolicy: IfNotPresent
+
+persistence:
+  enabled: true
+  storageClass: {{ smb_minio_share }}
+  size: 100Gi
+  accessMode: ReadWriteOnce
+  annotations:
+    helm.sh/resource-policy: keep
+    volume.beta.kubernetes.io/storage-provisioner: smb.csi.k8s.io
+    volume.kubernetes.io/storage-provisioner: smb.csi.k8s.io
+
+pools: 1
+
+resources:
+  requests:
+    memory: 2Gi
+
+service:
+  type: ClusterIP
+  port: 9000
+
+users:
+{% for user in minio_users %}
+{% if user.policy != 'root' %}
+  - accessKey: {{ user.username }}
+    existingSecret: {{ user.username }}-user-secret
+    existingSecretKey: secretKey
+    policy: {{ user.policy }}
+{% endif %}
+{% endfor %}
+
+svcaccts:
+  - accessKey: {{ minio_service_account.access_key }}
+    existingSecret: service-user-secret
+    existingSecretKey: secretKey
+    user: {{ minio_service_account.user }}

@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pihole-secret
+  namespace: external-dns
+data:
+  password: {{ pihole_config.password | b64encode }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: pihole
+  namespace: external-dns
+  annotations:
+    cert-manager.io/cluster-issuer: chain-ca-issuer
+spec:
+  gatewayClassName: cilium
+  listeners:
+    - name: https
+      hostname: pihole.{{ dns_config.domain }}
+      port: 443
+      protocol: HTTPS
+      tls:
+        certificateRefs:
+          - name: pihole-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pihole-https
+  namespace: external-dns
+spec:
+  parentRefs:
+    - name: pihole
+      namespace: external-dns
+      sectionName: https
+  hostnames:
+    - pihole.{{ dns_config.domain }}
+  rules:
+    - backendRefs:
+        - name: pihole-web
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pihole-redirect
+  namespace: external-dns
+spec:
+  parentRefs:
+    - name: pihole
+      namespace: external-dns
+  hostnames:
+    - pihole.{{ dns_config.domain }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /admin/
+            statusCode: 302

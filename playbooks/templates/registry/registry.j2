@@ -1,0 +1,38 @@
+ui:
+  replicas: 1
+  title: "Docker registry"
+  proxy: true
+  singleRegistry: true
+
+  deleteImages: true
+  showContentDigest: false
+
+  image: joxit/docker-registry-ui:{{ registry_ui_version }}
+
+  service:
+    type: ClusterIP
+    port: 80
+
+registry:
+  enabled: true
+  image: registry:{{ registry_version }}
+  service:
+    type: ClusterIP
+    port: 5000
+  extraEnv:
+    - name: REGISTRY_PROXY_REMOTEURL
+      value: https://registry-1.docker.io
+    # - name: REGISTRY_STORAGE
+    #   value: s3
+    # - name: REGISTRY_STORAGE_S3_ACCESSKEY
+    #   value: {{ minio_service_account.access_key }}
+    # - name: REGISTRY_STORAGE_S3_SECRETKEY
+    #   value: {{ minio_service_account.secret_key }}
+    # - name: REGISTRY_STORAGE_S3_REGION
+    #   value: us-east-1
+    # - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
+    #   value: http://minio.{{ dns_config.domain }}:9000
+    # - name: REGISTRY_STORAGE_S3_BUCKET
+    #   value: registry
+    # - name: REGISTRY_STORAGE_S3_SECURE
+    #   value: false

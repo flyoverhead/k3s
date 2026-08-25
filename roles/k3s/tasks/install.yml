@@ -1,0 +1,40 @@
+---
+
+- name: install | iptables
+  become: true
+  ansible.builtin.apt:
+    name: iptables
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: install | flush iptables
+  become: true
+  ansible.builtin.iptables:
+    flush: true
+
+- name: install | switch to iptables-legacy
+  become: true
+  community.general.alternatives:
+    path: /usr/sbin/iptables-legacy
+    name: iptables
+
+- name: install | enable ipv4 forwarding
+  become: true
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    state: present
+    reload: true
+
+- name: install | download archive
+  become: true
+  ansible.builtin.get_url:
+    url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/{{ k3s_binary }}
+    checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/sha256sum-{{ k3s_arch }}.txt
+    dest: /usr/local/bin/k3s
+    owner: root
+    group: root
+    mode: '0755'
+  register: archive_download
+  until: archive_download is succeeded

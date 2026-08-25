@@ -1,0 +1,8 @@
+---
+
+- name: deploy k3s
+  ansible.builtin.import_playbook: ../playbooks/playbook.yml
+  vars:
+    k3s_group: k3s
+    k3s_server_group: '{{ k3s_group }}_server'
+    k3s_agent_group: '{{ k3s_group }}_agent'

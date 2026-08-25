@@ -1,0 +1,7 @@
+---
+
+- name: deploy agent node
+  hosts: '{{ groups[k3s_agent_group] }}'
+
+  roles:
+    - role: k3s

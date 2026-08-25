@@ -1,0 +1,244 @@
+---
+
+k3s_config:
+  iface: '{{ k3s_iface }}'
+  api_port: '{{ k3s_api_port | default(6443) }}'
+  cluster_cidr: '{{ k3s_cluster_cidr }}'
+  lb_ip_range: '{{ k3s_lb_ip_range }}'
+
+k3s_cilium_config:
+  repo: https://helm.cilium.io
+  version: '{{ cilium_version }}'
+  iface: '{{ k3s_config.iface }}'
+  lb_ip_range: '{{ k3s_config.lb_ip_range }}'
+
+k3s_kube_vip_config:
+  version: '{{ kube_vip_version }}'
+  api_address: '{{ kube_vip_api_address }}'
+  iface: '{{ k3s_config.iface }}'
+  mode: arp
+  lb_ip_range: '{{ k3s_config.lb_ip_range }}'
+
+helm_kubeconfig_local_path: >-
+  {{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}
+resources_kubeconfig_local_path: >-
+  {{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}
+patches_kubeconfig_local_path: >-
+  {{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}
+
+helm_state: >-
+  {{ 'present' if not k3s_uninstall | default(false) else 'absent' }}
+resources_state: >-
+  {{ 'present' if not k3s_uninstall | default(false) else 'absent' }}
+
+pihole_config:
+  dns_address: '{{ (k3s_lb_ip_range | split("-"))[0] }}'
+  web_address: '{{ (k3s_lb_ip_range | split("-"))[0] | ansible.utils.ipmath(1) }}'
+  password: '{{ pihole_admin_password | default("password") }}'
+
+minio_users:
+  - username: '{{ minio_admin_username | default("admin") }}'
+    password: '{{ minio_admin_password | default("password") }}'
+    policy: root
+  - username: '{{ minio_console_username | default("console") }}'
+    password: '{{ minio_console_password | default("password") }}'
+    policy: consoleAdmin
+  - username: '{{ minio_service_username | default("user") }}'
+    password: '{{ minio_service_password | default("password") }}'
+    policy: readwrite
+
+gitea_admin:
+  username: '{{ gitea_admin_username | default("gitea_admin") }}'
+  password: '{{ gitea_admin_password | default("password") }}'
+
+kube_vip_resources:
+  - name: kube-vip
+    resource_definition:
+      - >-
+        {{ lookup('url', 'https://kube-vip.io/manifests/rbac.yaml',
+        split_lines=false, validate_certs=false) }}
+      - "{{ lookup('template', 'kube-vip/daemonset.j2') | from_yaml }}"
+    wait: false
+
+cilium_helm_charts:
+  - name: cilium
+    repo_name: cilium
+    repo_url: https://helm.cilium.io
+    chart_ref: cilium/cilium
+    chart_version: '{{ k3s_cilium_config.version }}'
+    release_name: cilium
+    release_namespace: kube-system
+    release_values: "{{ lookup('template', 'cilium/values.j2') | from_yaml }}"
+    # reset_values: true
+
+cilium_resources:
+  - name: cilium
+    resource_definition:
+      - "{{ lookup('template', 'cilium/lb-pool.j2') | from_yaml }}"
+      - "{{ lookup('file', 'cilium/lb-announce.yaml') | to_yaml | from_yaml }}"
+
+reflector_helm_charts:
+  - name: reflector
+    repo_name: emberstack
+    repo_url: https://emberstack.github.io/helm-charts
+    chart_ref: emberstack/reflector
+    chart_version: '{{ reflector_version }}'
+    release_name: reflector
+    release_namespace: kube-system
+
+gateway_api_crds_url: >-
+  https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/{{
+  gateway_api_version }}/config/crd
+
+gateway_api_resources:
+  - name: gateway-api
+    resource_definition:
+      - "{{ lookup('file', 'api-gateway/namespace.yaml') | to_yaml | from_yaml }}"
+      - >-
+        {{ lookup('url', gateway_api_crds_url +
+        '/standard/gateway.networking.k8s.io_gatewayclasses.yaml',
+        split_lines=false, validate_certs=false) }}
+      - >-
+        {{ lookup('url', gateway_api_crds_url +
+        '/standard/gateway.networking.k8s.io_gateways.yaml',
+        split_lines=false, validate_certs=false) }}
+      - >-
+        {{ lookup('url', gateway_api_crds_url +
+        '/standard/gateway.networking.k8s.io_grpcroutes.yaml',
+        split_lines=false, validate_certs=false) }}
+      - >-
+        {{ lookup('url', gateway_api_crds_url +
+        '/standard/gateway.networking.k8s.io_httproutes.yaml',
+        split_lines=false, validate_certs=false) }}
+      - >-
+        {{ lookup('url', gateway_api_crds_url +
+        '/standard/gateway.networking.k8s.io_referencegrants.yaml',
+        split_lines=false, validate_certs=false) }}
+      - >-
+        {{ lookup('url', gateway_api_crds_url +
+        '/experimental/gateway.networking.k8s.io_tlsroutes.yaml',
+        split_lines=false, validate_certs=false) }}
+    state: '{{ resources_state }}'
+
+cert_manager_helm_charts:
+  - name: cert-manager
+    repo_name: jetstack
+    repo_url: https://charts.jetstack.io
+    chart_ref: jetstack/cert-manager
+    chart_version: '{{ cert_manager_version }}'
+    release_name: cert-manager
+    release_namespace: cert-manager
+    release_values: "{{ lookup('file', 'cert-manager/values.yaml') | from_yaml }}"
+    state: '{{ helm_state }}'
+
+cert_manager_resources:
+  - name: cert-manager
+    resource_definition:
+      - "{{ lookup('file', 'cert-manager/root-ca.yaml') | to_yaml | from_yaml }}"
+      - "{{ lookup('file', 'cert-manager/chain-ca.yaml') | to_yaml | from_yaml }}"
+    state: '{{ resources_state }}'
+
+coredns_resources:
+  - name: coredns
+    resource_definition:
+      - "{{ lookup('template', 'external-dns/deployment.j2') | to_yaml | from_yaml }}"
+    state: '{{ resources_state }}'
+
+pihole_helm_charts:
+  - name: pihole
+    repo_name: mojo2600
+    repo_url: https://mojo2600.github.io/pihole-kubernetes
+    chart_ref: mojo2600/pihole
+    chart_version: '{{ pihole_helm_version }}'
+    release_name: pihole
+    release_namespace: external-dns
+    release_values: "{{ lookup('template', 'pihole/values.j2') | from_yaml }}"
+    state: '{{ helm_state }}'
+    reset_values: true
+
+pihole_resources:
+  - name: pihole
+    resource_definition:
+      - "{{ lookup('template', 'pihole/deployment.j2') | to_yaml | from_yaml }}"
+    state: '{{ resources_state }}'
+
+external_dns_charts:
+  - name: external-dns
+    repo_name: external-dns
+    repo_url: https://kubernetes-sigs.github.io/external-dns
+    chart_ref: external-dns/external-dns
+    chart_version: '{{ external_dns_version }}'
+    release_name: external-dns
+    release_namespace: external-dns
+    release_values: "{{ lookup('template', 'external-dns/values.j2') | from_yaml }}"
+    state: '{{ helm_state }}'
+    reset_values: true
+
+csi_smb_helm_charts:
+  - name: csi-smb
+    repo_name: csi-driver-smb
+    repo_url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts
+    chart_ref: csi-driver-smb/csi-driver-smb
+    chart_version: '{{ csi_smb_version }}'
+    release_name: csi-driver-smb
+    release_namespace: kube-system
+    release_values: "{{ lookup('file', 'csi-smb/values.yaml') | from_yaml }}"
+    state: '{{ helm_state }}'
+    # reset_values: true
+
+csi_smb_resources:
+  - name: csi-smb
+    resource_definition:
+      - "{{ lookup('template', 'csi-smb/deployment.j2') | to_yaml | from_yaml }}"
+    state: '{{ resources_state }}'
+
+minio_helm_charts:
+  - name: minio
+    repo_name: minio
+    repo_url: https://charts.min.io
+    chart_ref: minio/minio
+    chart_version: '{{ minio_helm_version }}'
+    release_name: minio
+    release_namespace: minio
+    release_values: "{{ lookup('template', 'minio/values.j2') | from_yaml }}"
+    state: '{{ helm_state }}'
+
+minio_resources:
+  - name: minio
+    resource_definition:
+      - "{{ lookup('template', 'minio/deployment.j2') | to_yaml | from_yaml }}"
+    state: '{{ resources_state }}'
+
+registry_ui_helm_charts:
+  - name: registry-ui
+    repo_name: joxit
+    repo_url: https://helm.joxit.dev
+    chart_ref: joxit/docker-registry-ui
+    chart_version: '{{ registry_ui_helm_version }}'
+    release_name: registry-ui
+    release_namespace: registry
+    release_values: "{{ lookup('template', 'registry/registry.j2') | from_yaml }}"
+    state: '{{ helm_state }}'
+
+registry_resources:
+  - name: registry
+    resource_definition:
+      - "{{ lookup('template', 'registry/deployment.j2') | to_yaml | from_yaml }}"
+    state: '{{ resources_state }}'
+
+gitea_helm_charts:
+  - name: gitea
+    repo_name: gitea-charts
+    repo_url: https://dl.gitea.com/charts
+    chart_ref: gitea-charts/gitea
+    chart_version: '{{ gitea_version }}'
+    release_name: gitea
+    release_namespace: gitea
+    release_values: "{{ lookup('template', 'gitea/values.j2') | from_yaml }}"
+    state: '{{ helm_state }}'
+
+gitea_resources:
+  - name: gitea
+    resource_definition:
+      - "{{ lookup('template', 'gitea/deployment.j2') | to_yaml | from_yaml }}"
+    state: '{{ resources_state }}'

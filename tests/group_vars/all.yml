@@ -1,0 +1,7 @@
+---
+
+ansible_user: vagrant
+ansible_password: vagrant
+ansible_port: 22
+
+ethernet_interface_name: eth1

@@ -1,0 +1,38 @@
+---
+
+- name: include vars
+  hosts: '{{ k3s_group }}'
+
+  tasks:
+
+    - name: include vars
+      ansible.builtin.include_vars:
+        dir: vars
+
+- name: deploy ha cluster
+  ansible.builtin.import_playbook: tasks/ha.yml
+  when:
+    - groups[k3s_server_group] | length > 1
+    - not k3s_uninstall | default(false)
+
+- name: deploy single node cluster
+  ansible.builtin.import_playbook: tasks/single.yml
+  when:
+    - groups[k3s_server_group] | length == 1
+    - not k3s_uninstall | default(false)
+
+- name: deploy agent nodes
+  ansible.builtin.import_playbook: tasks/agent.yml
+  when:
+    - groups[k3s_agent_group] | length > 0
+    - not k3s_uninstall | default(false)
+
+- name: configure cluster
+  ansible.builtin.import_playbook: tasks/config.yml
+  when:
+    - not k3s_uninstall | default(false)
+
+- name: destroy cluster
+  ansible.builtin.import_playbook: tasks/uninstall.yml
+  when:
+    - k3s_uninstall | default(false)

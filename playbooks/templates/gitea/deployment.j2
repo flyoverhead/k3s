@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitea
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitea-secret
+  namespace: gitea
+data:
+  email: {{ dns_config.email | b64encode }}
+  password: {{ gitea_admin.password | b64encode }}
+  username: {{ gitea_admin.username | b64encode }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: gitea
+  namespace: gitea
+  annotations:
+    cert-manager.io/cluster-issuer: chain-ca-issuer
+spec:
+  gatewayClassName: cilium
+  listeners:
+    - name: https
+      hostname: gitea.{{ dns_config.domain }}
+      port: 443
+      protocol: HTTPS
+      tls:
+        certificateRefs:
+          - name: gitea-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: gitea-https
+  namespace: gitea
+spec:
+  parentRefs:
+    - name: gitea
+      namespace: gitea
+      sectionName: https
+  hostnames:
+    - gitea.{{ dns_config.domain }}
+  rules:
+    - backendRefs:
+        - name: gitea-http
+          port: 3000

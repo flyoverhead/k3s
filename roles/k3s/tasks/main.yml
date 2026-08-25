@@ -1,0 +1,30 @@
+---
+
+- name: detect
+  ansible.builtin.include_tasks:
+    file: detect.yml
+
+- name: install
+  ansible.builtin.include_tasks:
+    file: install.yml
+  when:
+    - not k3s_installed
+
+- name: update
+  ansible.builtin.include_tasks:
+    file: update.yml
+  when:
+    - k3s_update
+
+- name: config
+  ansible.builtin.include_tasks:
+    file: config.yml
+
+- name: uninstall
+  ansible.builtin.include_tasks:
+    file: uninstall.yml
+  when:
+    - k3s_uninstall
+
+- name: handlers
+  ansible.builtin.meta: flush_handlers

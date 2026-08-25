@@ -1,0 +1,7 @@
+---
+
+- name: deploy server node
+  hosts: '{{ groups[k3s_server_group] }}'
+
+  roles:
+    - role: k3s

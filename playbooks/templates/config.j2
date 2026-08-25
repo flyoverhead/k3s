@@ -1,0 +1,27 @@
+{% if k3s_server_group in group_names %}
+{% if groups[k3s_server_group] | length > 1 %}
+{% if inventory_hostname == hostvars[groups[k3s_server_group][0]]['inventory_hostname'] %}
+cluster-init: true
+{% else %}
+server: https://{{ k3s_api_endpoint }}:{{ k3s_config.api_port }}
+{% endif %}
+{% else %}
+disable-kube-proxy: true
+{% endif %}
+{% if groups[k3s_agent_group] | default([]) | length >= 1 %}
+node-taint: node-role.kubernetes.io/master=true:NoSchedule
+{% endif %}
+flannel-backend: none
+disable-network-policy: true
+disable:
+  - servicelb
+  - traefik
+cluster-cidr: {{ k3s_config.cluster_cidr }}
+tls-san: {{ k3s_api_endpoint }}
+node-ip: {{ k3s_node_ip }}
+{% else %}
+server: https://{{ k3s_api_endpoint }}:{{ k3s_config.api_port }}
+{% endif %}
+{% if k3s_token | default('') | length > 0 %}
+token: {{ k3s_token }}
+{% endif %}

@@ -1,0 +1,33 @@
+env:
+  - name: EXTERNAL_DNS_PIHOLE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: pihole-secret
+        key: password
+
+extraArgs:
+  - --pihole-server=http://{{ pihole_web_address }}
+  - --pihole-tls-skip-verify
+  - --resolve-service-load-balancer-hostname
+
+provider:
+  name: pihole
+
+registry: noop
+
+rbac:
+  create: true
+  additionalPermissions:
+    - apiGroups: [""]
+      resources: ["services","endpoints","pods"]
+      verbs: ["get","watch","list"]
+    - apiGroups: [""]
+      resources: ["namespaces","nodes"]
+      verbs: ["get","watch","list"]
+    - apiGroups: ["gateway.networking.k8s.io"]
+      resources: ["gateways","httproutes"] 
+      verbs: ["get","watch","list"]
+
+sources:
+  - gateway-httproute
+  - service

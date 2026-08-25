@@ -1,0 +1,9 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: default-pool
+  namespace: kube-system
+spec:
+  blocks:
+    - start: "{{ (k3s_cilium_config.lb_ip_range | split('-'))[0] }}"
+      stop: "{{ (k3s_cilium_config.lb_ip_range | split('-'))[1] }}"

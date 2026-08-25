@@ -1,0 +1,202 @@
+---
+
+- name: configure cluster
+  hosts: '{{ groups[k3s_server_group][0] }}'
+
+  tasks:
+
+    - name: switch to controller
+      become: true
+      become_user: '{{ k3s_controller_config.owner }}'
+      delegate_to: '{{ k3s_controller_config.address }}'
+      block:
+
+        - name: apply kube-vip resources
+          ansible.builtin.include_role:
+            name: resource
+          vars:
+            resources_definition: '{{ kube_vip_resources }}'
+
+        - name: apply gateway api resources
+          ansible.builtin.include_role:
+            name: resource
+          vars:
+            resources_definition: '{{ gateway_api_resources }}'
+
+        - name: apply cilium helm chart
+          ansible.builtin.include_role:
+            name: helm
+          vars:
+            helm_charts: '{{ cilium_helm_charts }}'
+
+        - name: apply cilium resources
+          ansible.builtin.include_role:
+            name: resource
+          vars:
+            resources_definition: '{{ cilium_resources }}'
+
+        - name: apply reflector helm chart
+          ansible.builtin.include_role:
+            name: helm
+          vars:
+            helm_charts: '{{ reflector_helm_charts }}'
+
+        - name: deploy csi smb
+          block:
+
+            - name: apply csi smb helm chart
+              ansible.builtin.include_role:
+                name: helm
+              vars:
+                helm_charts: '{{ csi_smb_helm_charts }}'
+
+            - name: apply csi smb resources
+              ansible.builtin.include_role:
+                name: resource
+              vars:
+                resources_definition: '{{ csi_smb_resources }}'
+
+        - name: deploy cert-manager
+          block:
+
+            - name: apply cert-manager helm chart
+              ansible.builtin.include_role:
+                name: helm
+              vars:
+                helm_charts: '{{ cert_manager_helm_charts }}'
+
+            - name: apply cert-manager resources
+              ansible.builtin.include_role:
+                name: resource
+              vars:
+                resources_definition: '{{ cert_manager_resources }}'
+
+            - name: get root-ca-secret
+              kubernetes.core.k8s_info:
+                kind: Secret
+                name: root-ca-secret
+                namespace: cert-manager
+                kubeconfig: '{{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}'
+              register: root_ca_secret
+              until: root_ca_secret.resources | length > 0
+
+            - name: save root pem cert
+              ansible.builtin.copy:
+                content: >-
+                  {{ root_ca_secret.resources.0.data['tls.crt'] | b64decode +
+                  root_ca_secret.resources.0.data['tls.key'] | b64decode }}
+                dest: '{{ k3s_controller_config.path }}/root-ca-cert.pem'
+                owner: '{{ k3s_controller_config.owner }}'
+                group: '{{ k3s_controller_config.group }}'
+                mode: '0644'
+
+        - name: deploy dns
+          block:
+
+            - name: apply coredns resources
+              ansible.builtin.include_role:
+                name: resource
+              vars:
+                resources_definition: '{{ coredns_resources }}'
+
+            - name: apply pihole helm chart
+              ansible.builtin.include_role:
+                name: helm
+              vars:
+                helm_charts: '{{ pihole_helm_charts }}'
+
+            - name: apply pihole resources
+              ansible.builtin.include_role:
+                name: resource
+              vars:
+                resources_definition: '{{ pihole_resources }}'
+
+            - name: get pihole-web cluster ip
+              become: true
+              become_user: '{{ k3s_controller_config.owner }}'
+              delegate_to: '{{ k3s_controller_config.address }}'
+              kubernetes.core.k8s_info:
+                kind: Service
+                name: pihole-web
+                namespace: external-dns
+                kubeconfig: '{{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}'
+              register: pihole_web_cluster_ip
+              until: pihole_web_cluster_ip.resources | length > 0
+              delay: 40
+
+            - name: set pihole_web_address fact
+              ansible.builtin.set_fact:
+                pihole_web_address: >-
+                  {{ pihole_web_cluster_ip.resources |
+                  map(attribute='spec.clusterIP') |
+                  first }}
+
+            - name: apply external-dns helm chart
+              ansible.builtin.include_role:
+                name: helm
+              vars:
+                helm_charts: '{{ external_dns_charts }}'
+
+        - name: deploy minio
+          block:
+
+            - name: apply minio resources
+              ansible.builtin.include_role:
+                name: resource
+              vars:
+                resources_definition: '{{ minio_resources }}'
+
+            - name: apply minio helm chart
+              ansible.builtin.include_role:
+                name: helm
+              vars:
+                helm_charts: '{{ minio_helm_charts }}'
+
+            - name: get minio cluster ip
+              become: true
+              become_user: '{{ k3s_controller_config.owner }}'
+              delegate_to: '{{ k3s_controller_config.address }}'
+              kubernetes.core.k8s_info:
+                kind: Service
+                name: minio
+                namespace: minio
+                kubeconfig: '{{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}'
+              register: minio_cluster_ip
+              until: minio_cluster_ip.resources | length > 0
+
+            - name: set minio_address fact
+              ansible.builtin.set_fact:
+                minio_address: >-
+                  {{ minio_cluster_ip.resources |
+                  map(attribute='spec.clusterIP') |
+                  first }}
+
+        - name: deploy registry
+          block:
+
+            - name: apply registry resources
+              ansible.builtin.include_role:
+                name: resource
+              vars:
+                resources_definition: '{{ registry_resources }}'
+
+            - name: apply registry-ui helm chart
+              ansible.builtin.include_role:
+                name: helm
+              vars:
+                helm_charts: '{{ registry_ui_helm_charts }}'
+
+        - name: deploy gitea
+          block:
+
+            - name: apply gitea resources
+              ansible.builtin.include_role:
+                name: resource
+              vars:
+                resources_definition: '{{ gitea_resources }}'
+
+            - name: apply gitea helm chart
+              ansible.builtin.include_role:
+                name: helm
+              vars:
+                helm_charts: '{{ gitea_helm_charts }}'

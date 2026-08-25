@@ -1,0 +1,14 @@
+---
+
+- name: install | patches
+  kubernetes.core.k8s_json_patch:
+    name: '{{ item.name }}'
+    kind: '{{ item.kind }}'
+    namespace: '{{ item.namespace | default("kube-system") }}'
+    patch: '{{ item.patch }}'
+    wait: '{{ item.wait | default(true) }}'
+    kubeconfig: '{{ patches_kubeconfig_local_path }}'
+    validate_certs: false
+  loop: '{{ patches_definition }}'
+  loop_control:
+    label: '{{ item.name }}'

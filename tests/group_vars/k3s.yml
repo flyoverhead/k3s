@@ -1,0 +1,41 @@
+---
+
+k3s_iface: '{{ ethernet_interface_name }}'
+k3s_api_port: 6443
+k3s_cluster_cidr: 10.52.0.0/16
+k3s_lb_ip_range: 192.168.11.150-192.168.11.170
+
+k3s_version: v1.31.3+k3s1 # https://github.com/k3s-io/k3s/releases
+
+kube_vip_version: v0.8.7 # https://github.com/kube-vip/kube-vip/releases
+kube_vip_api_address: 172.16.1.250
+
+cilium_version: v1.16.4 # https://github.com/cilium/cilium/releases
+
+cert_manager_version: v1.16.2 # https://github.com/cert-manager/cert-manager/releases
+
+gateway_api_version: v1.2.1 # https://github.com/kubernetes-sigs/gateway-api/releases
+
+pihole_helm_version: v2.27.0 # https://github.com/MoJo2600/pihole-kubernetes/releases
+
+external_dns_version: v0.15.0 # https://github.com/kubernetes-sigs/external-dns/releases
+
+gitea_version: v10.6.0 # https://gitea.com/gitea/helm-chart/releases
+
+k3s_controller_config:
+  address: localhost
+  path: "{{ lookup('env', 'HOME') }}/.kube"
+  name: config
+  owner: "{{ lookup('env', 'USER') }}"
+  group: staff
+
+dns_config:
+  domain: test.lab
+  email: test@gmail.com
+  upstream:
+    - 8.8.4.4
+    - 8.8.8.8
+
+pihole_admin_password: password
+gitea_admin_username: test
+gitea_admin_password: password

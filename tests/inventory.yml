@@ -1,0 +1,11 @@
+---
+
+k3s:
+  children:
+    k3s_server:
+      hosts:
+        server-01:
+    k3s_agent:
+      hosts:
+        client-01:
+        client-02:

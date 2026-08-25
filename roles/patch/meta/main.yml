@@ -1,0 +1,14 @@
+---
+
+galaxy_info:
+  author: flyoverhead
+  description: K3S patches deployment
+  license: GNU
+  min_ansible_version: '2.15'
+  galaxy_tags:
+    - k3s
+    - patches
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm

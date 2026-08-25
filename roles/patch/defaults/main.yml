@@ -1,0 +1,35 @@
+---
+
+patches_kubeconfig_local_path: '{{ ansible_user_dir }}/.kube/config'
+
+patches_definition: []
+  # - name: coredns
+  #   kind: deployment
+  #   namespace: kube-system
+  #   patch:
+  #     - op: add
+  #       path: /spec/template/spec/affinity
+  #       value:
+  #         podAntiAffinity:
+  #           preferredDuringSchedulingIgnoredDuringExecution:
+  #             - weight: 100
+  #               podAffinityTerm:
+  #                 labelSelector:
+  #                   matchExpressions:
+  #                     - key: k8s-app
+  #                       operator: In
+  #                       values:
+  #                         - kube-dns
+  #                 topologyKey: kubernetes.io/hostname
+  #         nodeAffinity:
+  #           requiredDuringSchedulingIgnoredDuringExecution:
+  #             nodeSelectorTerms:
+  #               - matchExpressions:
+  #                   - key: node-role.kubernetes.io/master
+  #                     operator: Exists
+  #     - op: add
+  #       path: /spec/template/spec/containers/0/ports/0/hostPort
+  #       value: 53
+  #     - op: add
+  #       path: /spec/template/spec/containers/0/ports/1/hostPort
+  #       value: 53

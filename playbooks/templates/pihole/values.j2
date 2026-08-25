@@ -1,0 +1,22 @@
+admin:
+  enabled: true
+  existingSecret: pihole-secret
+  passwordKey: password
+
+serviceDhcp:
+  enabled: false
+
+serviceDns:
+  externalTrafficPolicy: Cluster
+  loadBalancerIP: {{ pihole_config.dns_address }}
+  mixedService: true
+  type: LoadBalancer
+
+serviceWeb:
+  type: ClusterIP
+  port: 80
+
+extraEnvVars:
+  TZ: {{ k3s_timezone }}
+  QUERY_LOGGING: "false"
+  IPv6: "false"

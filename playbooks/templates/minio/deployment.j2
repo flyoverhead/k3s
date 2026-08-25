@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: minio
+---
+{% for user in minio_users %}
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: minio
+{% if user.policy == 'root' %}
+  name: root-user-secret
+data:
+  rootUser: {{ user.username | b64encode }}
+  rootPassword: {{ user.password | b64encode }}
+{% else %}
+  name: {{ user.username }}-user-secret
+data:
+  accessKey: {{ user.username | b64encode }}
+  secretKey: {{ user.password | b64encode }}
+{% endif %}
+{{ '---' if not loop.last }}
+{% endfor %}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: minio
+  name: service-user-secret
+  annotations:
+    reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "registry,gitea"
+    reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+    reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "registry,gitea"
+data:
+  accessKey: {{ minio_service_account.access_key | b64encode }}
+  secretKey: {{ minio_service_account.secret_key | b64encode }}
+  user: {{ minio_service_account.user | b64encode }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: minio
+  namespace: minio
+  annotations:
+    cert-manager.io/cluster-issuer: chain-ca-issuer
+spec:
+  gatewayClassName: cilium
+  listeners:
+    - name: http
+      hostname: minio.{{ dns_config.domain }}
+      port: 9000
+      protocol: HTTP
+    - name: https
+      hostname: minio.{{ dns_config.domain }}
+      port: 443
+      protocol: HTTPS
+      tls:
+        certificateRefs:
+          - name: minio-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: minio-http
+  namespace: minio
+spec:
+  parentRefs:
+    - name: minio
+      namespace: minio
+      sectionName: http
+  hostnames:
+    - minio.{{ dns_config.domain }}
+  rules:
+    - backendRefs:
+        - name: minio
+          port: 9000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: minio-https
+  namespace: minio
+spec:
+  parentRefs:
+    - name: minio
+      namespace: minio
+      sectionName: https
+  hostnames:
+    - minio.{{ dns_config.domain }}
+  rules:
+    - backendRefs:
+        - name: minio-console
+          port: 9001

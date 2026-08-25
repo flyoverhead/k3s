@@ -1,0 +1,43 @@
+devices: {{ k3s_cilium_config.iface }}
+
+envoy:
+  enabled: true
+  securityContext:
+    capabilities:
+      keepCapNetBindService: true
+      envoy:
+        - NET_ADMIN
+        - PERFMON
+        - BPF
+
+gatewayAPI:
+  enabled: true
+  gatewayClass:
+    create: "true"
+
+hubble:
+  enabled: true
+
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList: {{ k3s_config.cluster_cidr }}
+
+k8sClientRateLimit:
+  qps: 100
+  burst: 200
+
+k8sServiceHost: {{ k3s_api_endpoint }}
+k8sServicePort: {{ k3s_config.api_port }}
+
+kubeProxyReplacement: true
+
+l2announcements:
+  enabled: true
+
+l7Proxy: true
+
+operator:
+  rollOutPods: true
+  replicas: 3
+
+rollOutCiliumPods: true

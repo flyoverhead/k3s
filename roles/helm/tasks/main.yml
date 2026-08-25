@@ -1,0 +1,31 @@
+---
+
+- name: install | helm repos
+  kubernetes.core.helm_repository:
+    repo_name: '{{ item.repo_name }}'
+    repo_url: '{{ item.repo_url }}'
+    kubeconfig: '{{ helm_kubeconfig_local_path }}'
+    validate_certs: false
+  loop: '{{ helm_charts }}'
+  loop_control:
+    label: '{{ item.name }}'
+
+- name: install | helm charts
+  kubernetes.core.helm:
+    chart_ref: '{{ item.chart_ref }}'
+    chart_version: '{{ item.chart_version }}'
+    create_namespace: '{{ item.create_namespace | default(true) }}'
+    release_name: '{{ item.release_name }}'
+    release_namespace: '{{ item.release_namespace | default("kube-system") }}'
+    update_repo_cache: '{{ item.update_repo_cache | default(true) }}'
+    release_values: '{{ item.release_values | default(omit) }}'
+    reset_values: '{{ item.reset_values | default(false) }}'
+    reuse_values: '{{ item.reuse_values | default(true) }}'
+    set_values: '{{ item.set_values | default(omit) }}'
+    state: '{{ item.state | default("present") }}'
+    wait: '{{ item.wait | default(true) }}'
+    kubeconfig: '{{ helm_kubeconfig_local_path }}'
+    validate_certs: false
+  loop: '{{ helm_charts }}'
+  loop_control:
+    label: '{{ item.name }} {{ item.chart_version }}'

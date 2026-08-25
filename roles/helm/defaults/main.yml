@@ -1,0 +1,13 @@
+---
+
+helm_kubeconfig_local_path: '{{ ansible_user_dir }}/.kube/config'
+
+helm_charts: []
+  # - name: cilium
+  #   repo_name: cilium
+  #   repo_url: https://helm.cilium.io
+  #   chart_ref: cilium/cilium
+  #   chart_version: 1.14.0
+  #   release_name: cilium
+  #   release_namespace: kube-system
+  #   release_values: '{{ lookup("file", "cilium.yml") | from_yaml }}'
