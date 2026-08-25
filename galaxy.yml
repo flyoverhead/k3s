@@ -1,20 +1,43 @@
 ---
 
 namespace: flyoverhead
-name: k8s
-version: 1.0.0
+name: k3s
+version: 2.0.0
 readme: README.md
 authors:
   - flyoverhead
 description: Ansible collection for k3s cluster deployment and management
+license:
+  - GPL-3.0-only
 tags:
   - helm
+  - infrastructure
   - k3s
   - kubernetes
-  - patches
-  - resources
+  - linux
 dependencies:
+  ansible.posix: '>=1.5.4'
+  ansible.utils: '>=2.5.0'
+  community.general: '>=8.0.0'
   kubernetes.core: '>=3.4.3'
 
-repository: https://github.com/flyoverhead/k3s.git
-issues: https://github.com/flyoverhead/k3s.git/issues
+repository: https://github.com/flyoverhead/k3s
+issues: https://github.com/flyoverhead/k3s/issues
+
+# fnmatch patterns against the path relative to the collection root, so nested
+# matches need a leading `*` -- a bare `.DS_Store` only ever matches the one at
+# the top level
+build_ignore:
+  - '*.DS_Store'
+  - .ansible
+  - .ansible-lint
+  - .claude
+  - .pre-commit-config.yaml
+  - .tflint.hcl
+  - .vagrant
+  - .venv
+  - .vscode
+  - .yamllint
+  - Taskfile.yml
+  - Vagrantfile
+  - tests

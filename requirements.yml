@@ -1,4 +1,15 @@
 ---
 
 collections:
-  - kubernetes.core
+
+  - name: ansible.posix
+    version: '>=1.5.4'
+
+  - name: ansible.utils
+    version: '>=2.5.0'
+
+  - name: community.general
+    version: '>=8.0.0'
+
+  - name: kubernetes.core
+    version: '>=3.4.3'
