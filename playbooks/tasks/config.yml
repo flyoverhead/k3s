@@ -11,12 +11,6 @@
       delegate_to: '{{ k3s_controller_config.address }}'
       block:
 
-        - name: apply kube-vip resources
-          ansible.builtin.include_role:
-            name: resources
-          vars:
-            resources_definition: '{{ kube_vip_resources }}'
-
         - name: apply gateway api resources
           ansible.builtin.include_role:
             name: resources

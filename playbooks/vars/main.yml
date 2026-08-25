@@ -51,15 +51,6 @@ gitea_admin:
   username: '{{ gitea_admin_username | default("gitea_admin") }}'
   password: '{{ gitea_admin_password | default("password") }}'
 
-kube_vip_resources:
-  - name: kube-vip
-    resource_definition:
-      - >-
-        {{ lookup('url', 'https://kube-vip.io/manifests/rbac.yaml',
-        split_lines=false, validate_certs=false) }}
-      - "{{ lookup('template', 'kube-vip/daemonset.j2') | from_yaml }}"
-    wait: false
-
 cilium_helm_charts:
   - name: cilium
     repo_name: cilium

@@ -112,7 +112,7 @@
           ansible.builtin.include_role:
             name: resources
           vars:
-            resources_definition: '{{ kube_vip_resources }}'
+            resources_definition: '{{ k3s_kube_vip_resources }}'
 
         - name: config | change local config to kube-vip api endpoint
           ansible.builtin.lineinfile:

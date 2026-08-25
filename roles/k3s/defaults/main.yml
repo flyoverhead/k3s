@@ -2,9 +2,8 @@
 
 k3s_version: v1.31.3+k3s1 # https://github.com/k3s-io/k3s/releases
 
-k3s_group: k3s
-k3s_server_group: '{{ k3s_group }}_server'
-k3s_agent_group: '{{ k3s_group }}_agent'
+k3s_server_group: k3s_server
+k3s_agent_group: k3s_agent
 
 k3s_config:
   iface: eth0
@@ -18,11 +17,18 @@ k3s_kube_vip_config:
   iface: '{{ k3s_config.iface }}'
   lb_ip_range: '{{ k3s_config.lb_ip_range }}'
 
-k3s_cilium_config:
-  repo: https://helm.cilium.io
-  version: v1.16.4  # https://github.com/cilium/cilium/releases
-  iface: '{{ k3s_config.iface }}' # auto
-  lb_ip_range: '{{ k3s_config.lb_ip_range }}'
+# Applied by tasks/config.yml on the first server when the cluster has more
+# than one, before agents join -- the API endpoint they are given is the VIP,
+# so it has to answer first. Previously this lived in playbooks/vars/main.yml,
+# which made the role unusable outside the bundled playbook.
+k3s_kube_vip_resources:
+  - name: kube-vip
+    resource_definition:
+      - >-
+        {{ lookup('url', 'https://kube-vip.io/manifests/rbac.yaml',
+        split_lines=false, validate_certs=false) }}
+      - "{{ lookup('template', 'kube-vip/daemonset.j2') | from_yaml }}"
+    wait: false
 
 k3s_controller_config:
   address: localhost
