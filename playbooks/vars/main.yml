@@ -51,6 +51,16 @@ gitea_admin:
   username: '{{ gitea_admin_username | default("gitea_admin") }}'
   password: '{{ gitea_admin_password | default("password") }}'
 
+# The Vagrant harness sets this false. csi-smb, minio, registry, gitea, pihole
+# and external-dns need an SMB share at smb_config.url and vaulted
+# credentials, neither of which a Vagrant box supplies, so a test run scopes
+# itself to the core cluster: k3s, gateway-api, cilium and reflector.
+k3s_apps_enabled: true
+
+# Read by playbooks/templates/pihole/values.j2 and previously defaulted
+# nowhere -- it only worked because new_lab's inventory happened to set it.
+k3s_timezone: Etc/UTC
+
 cilium_helm_charts:
   - name: cilium
     repo_name: cilium

@@ -36,6 +36,7 @@
             helm_charts: '{{ reflector_helm_charts }}'
 
         - name: deploy csi smb
+          when: k3s_apps_enabled
           block:
 
             - name: apply csi smb helm chart
@@ -51,6 +52,7 @@
                 resources_definition: '{{ csi_smb_resources }}'
 
         - name: deploy cert-manager
+          when: k3s_apps_enabled
           block:
 
             - name: apply cert-manager helm chart
@@ -85,6 +87,7 @@
                 mode: '0644'
 
         - name: deploy dns
+          when: k3s_apps_enabled
           block:
 
             - name: apply coredns resources
@@ -132,6 +135,7 @@
                 helm_charts: '{{ external_dns_charts }}'
 
         - name: deploy minio
+          when: k3s_apps_enabled
           block:
 
             - name: apply minio resources
@@ -166,6 +170,7 @@
                   first }}
 
         - name: deploy registry
+          when: k3s_apps_enabled
           block:
 
             - name: apply registry resources
@@ -181,6 +186,7 @@
                 helm_charts: '{{ registry_ui_helm_charts }}'
 
         - name: deploy gitea
+          when: k3s_apps_enabled
           block:
 
             - name: apply gitea resources
