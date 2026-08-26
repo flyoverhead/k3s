@@ -10,6 +10,14 @@
   loop_control:
     label: '{{ item.name }}'
 
+# reuse_values defaults to false. Cilium's upgrade guide: "When upgrading from
+# one minor release to another minor release using `helm upgrade`, do *not* use
+# Helm's --reuse-values flag. The --reuse-values flag ignores any newly
+# introduced values present in the new release and thus may cause the Helm
+# template to render incorrectly." It is wrong beyond cilium too -- this role
+# exists to apply the declarative values in playbooks/templates/*/values.j2,
+# which --reuse-values partially discards. A chart that genuinely needs it can
+# still set reuse_values per entry.
 - name: install | helm charts
   kubernetes.core.helm:
     chart_ref: '{{ item.chart_ref }}'
@@ -20,7 +28,7 @@
     update_repo_cache: '{{ item.update_repo_cache | default(true) }}'
     release_values: '{{ item.release_values | default(omit) }}'
     reset_values: '{{ item.reset_values | default(false) }}'
-    reuse_values: '{{ item.reuse_values | default(true) }}'
+    reuse_values: '{{ item.reuse_values | default(false) }}'
     set_values: '{{ item.set_values | default(omit) }}'
     state: '{{ item.state | default("present") }}'
     wait: '{{ item.wait | default(true) }}'

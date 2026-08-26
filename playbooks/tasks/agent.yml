@@ -1,7 +1,13 @@
 ---
 
+# serial is play-level and evaluated before any fact exists, so it cannot be
+# conditional on k3s_update -- it applies to fresh installs too, making the
+# initial agent join sequential. That is the cost of never stopping k3s on two
+# agents at once; raise k3s_agent_serial for a first build in a hurry.
 - name: deploy agent node
   hosts: '{{ groups[k3s_agent_group] }}'
+  serial: '{{ k3s_agent_serial | default(1) }}'
+  order: inventory
 
   roles:
     - role: k3s
