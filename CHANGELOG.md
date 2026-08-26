@@ -2,6 +2,29 @@
 
 All notable changes to `flyoverhead.k3s`.
 
+## 2.2.0
+
+### Changed
+
+- **reflector v7.1.288 → 10.0.65.** Dependency updates only, no value or template changes required.
+- **registry v2.8.3 → 3.1.1.** Removed support for oss/swift storage drivers and legacy libtrust; uses filesystem storage so no value changes required.
+- **gitea chart v10.6.0 → v12.7.0.** Redis migrated to Valkey (`redis` → `valkey`, `redis-cluster` → `valkey-cluster`); runner image path moved (`gitea/act_runner` → `gitea/runner`). Template changes applied.
+- **gitea-runner 0.2.11 → v3.3.0.** Image repository moved from `gitea/act_runner` to `gitea/runner`; template updated.
+- **Deleted `registry_helm_version` pin.** Never read by the collection; dead variable removed from inventory.
+- **cert-manager v1.17.2 → v1.21.1.** All schema keys present; `config.enableGatewayAPI` removed from chart but left in values (harmless, Helm ignores unknown keys).
+- **pihole v2.27.0 → 2.38.0.** All schema keys present, number-only bump.
+- **external-dns 1.16.1 → 1.21.1.** All schema keys present, number-only bump.
+- **csi-driver-smb v1.18.0 → 1.20.3.** All schema keys present, number-only bump.
+- **registry-ui image 2.5.7 → 2.6.0.** Number-only bump.
+- **registry-ui chart 1.1.3 → 1.1.4.** All schema keys present, number-only bump.
+- **minio v2024-12-18 → v2025-10-15.** All schema keys present, number-only bump.
+- **minio-mc v2024-11-21 → v2025-08-13.** Number-only bump.
+- **minio chart 5.3.0 → 5.4.0.** All schema keys present, number-only bump.
+
+### Known issues
+
+- **Not harness-covered.** Thirteen of the fourteen bumps (all except reflector) deploy with `k3s_apps_enabled: false` in the test suite and are not exercised. The harness covers core cluster bootstrap (k3s, gateway-api, cilium, reflector, kube-vip) only.
+
 ## 2.1.0
 
 ### Changed
