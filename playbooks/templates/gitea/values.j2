@@ -4,7 +4,7 @@ actions:
     enabled: true
   statefulset:
     actRunner:
-      repository: gitea/act_runner
+      repository: gitea/runner
       tag: {{ gitea_runner_version }}
       pullPolicy: IfNotPresent
       config: |
@@ -62,13 +62,13 @@ postgresql:
 postgresql-ha:
   enabled: false
 
-redis:
+valkey:
   enabled: true
   global:
-    redis:
+    valkey:
       password: {{ gitea_db_password }}
 
-redis-cluster:
+valkey-cluster:
   enabled: false
 
 replicaCount: 1
