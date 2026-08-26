@@ -2,6 +2,30 @@
 
 All notable changes to `flyoverhead.k3s`.
 
+## 2.1.0
+
+### Changed
+
+- **k3s v1.33.0+k3s1 → v1.36.3+k3s1.** A skip of two Kubernetes minors; safely
+  applied to a cluster rebuilt rather than upgraded in place, which both k3s and
+  cilium forbid for skipped minors.
+- **cilium v1.17.4 → 1.20.1.** Note: Helm publishes cilium chart versions
+  without the leading `v`. cilium 1.20.1 is e2e-tested against Kubernetes
+  1.33–1.36; k3s v1.36.3+k3s1 is Kubernetes 1.36, so the pair is within the
+  support matrix.
+- **gateway-api v1.2.1 → v1.6.1.**
+- **kube-vip v0.9.1 → v1.2.3.** kube-vip 1.x removed the `vip_cidr`
+  environment variable; `pkg/kubevip/config_envvar.go` and
+  `pkg/vip/address.go` at v1.2.3 show `vip_subnet` in its place, and
+  `SelectSubnet` takes a bare prefix length (comma-separated for dual-stack), so
+  the value stays `"32"`, not `"/32"`. Also deleted the duplicate
+  `vip_leaderelection` env entry that was listed twice.
+
+### Known issues
+
+- The harness runs one server, so HA and kube-vip failover are not exercised —
+  kube-vip is not covered by the test suite.
+
 ## 2.0.0
 
 ### Fixed

@@ -11,18 +11,16 @@ k3s_lb_ip_range: 192.168.56.150-192.168.56.170
 # Core cluster only. See playbooks/vars/main.yml for why.
 k3s_apps_enabled: false
 
-k3s_version: v1.31.3+k3s1 # https://github.com/k3s-io/k3s/releases
+k3s_version: v1.36.3+k3s1 # https://github.com/k3s-io/k3s/releases
 
-# Unused while the harness runs one server, but must be on the harness subnet
-# if that ever changes. Was 172.16.1.250.
-kube_vip_version: v0.8.7 # https://github.com/kube-vip/kube-vip/releases
+kube_vip_version: v1.2.3 # https://github.com/kube-vip/kube-vip/releases
 kube_vip_api_address: 192.168.56.250
 
-cilium_version: v1.16.4 # https://github.com/cilium/cilium/releases
+cilium_version: 1.20.1 # https://github.com/cilium/cilium/releases
 
 reflector_version: 7.1.288 # https://github.com/emberstack/kubernetes-reflector/releases
 
-gateway_api_version: v1.2.1 # https://github.com/kubernetes-sigs/gateway-api/releases
+gateway_api_version: v1.6.1 # https://github.com/kubernetes-sigs/gateway-api/releases
 
 k3s_controller_config:
   address: localhost

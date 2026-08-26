@@ -40,7 +40,9 @@ spec:
               value: "{{ k3s_config.api_port }}"
             - name: vip_interface
               value: "{{ k3s_kube_vip_config.iface }}"
-            - name: vip_cidr
+            # renamed from vip_cidr in kube-vip 1.x; SelectSubnet takes a bare
+            # prefix length, not "/32"
+            - name: vip_subnet
               value: "32"
             - name: cp_enable
               value: "true"
@@ -50,8 +52,6 @@ spec:
               value: "true"
             - name: vip_ddns
               value: "false"
-            - name: vip_leaderelection
-              value: "true"
             - name: vip_leasename
               value: "plndr-cp-lock"
             - name: vip_leaseduration
