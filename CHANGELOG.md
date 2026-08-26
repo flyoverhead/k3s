@@ -8,8 +8,7 @@ All notable changes to `flyoverhead.k3s`.
 
 - **reflector v7.1.288 → 10.0.65.** Dependency updates only, no value or template changes required.
 - **registry v2.8.3 → 3.1.1.** Removed support for oss/swift storage drivers and legacy libtrust; uses filesystem storage so no value changes required.
-- **gitea chart v10.6.0 → v12.7.0.** Redis migrated to Valkey (`redis` → `valkey`, `redis-cluster` → `valkey-cluster`); runner image path moved (`gitea/act_runner` → `gitea/runner`). Template changes applied.
-- **gitea-runner 0.2.11 → v3.3.0.** Image repository moved from `gitea/act_runner` to `gitea/runner`; template updated.
+- **gitea chart v10.6.0 → v12.7.0.** Redis migrated to Valkey (`redis` → `valkey`, `redis-cluster` → `valkey-cluster`). Breaking: chart v12 outsourced the Actions sub-chart to `gitea/helm-actions`; the `actions:` block has been removed from this collection's values template. Deleted `gitea_runner_version` pin (now unused).
 - **Deleted `registry_helm_version` pin.** Never read by the collection; dead variable removed from inventory.
 - **cert-manager v1.17.2 → v1.21.1.** All schema keys present; `config.enableGatewayAPI` removed from chart but left in values (harmless, Helm ignores unknown keys).
 - **pihole v2.27.0 → 2.38.0.** All schema keys present, number-only bump.
@@ -23,6 +22,7 @@ All notable changes to `flyoverhead.k3s`.
 
 ### Known issues
 
+- **Gitea Actions runners no longer deployed.** Gitea chart v12 moved the Actions sub-chart to `gitea/helm-actions`, which this collection does not deploy. The `actions:` block has been removed from the collection's gitea values template. Anyone requiring CI runners must deploy `gitea/helm-actions` as a separate chart.
 - **Not harness-covered.** Thirteen of the fourteen bumps (all except reflector) deploy with `k3s_apps_enabled: false` in the test suite and are not exercised. The harness covers core cluster bootstrap (k3s, gateway-api, cilium, reflector, kube-vip) only.
 
 ## 2.1.0

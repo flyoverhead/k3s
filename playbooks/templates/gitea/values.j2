@@ -1,21 +1,3 @@
-actions:
-  enabled: true
-  provisioning:
-    enabled: true
-  statefulset:
-    actRunner:
-      repository: gitea/runner
-      tag: {{ gitea_runner_version }}
-      pullPolicy: IfNotPresent
-      config: |
-        log:
-          level: info
-        cache:
-          enabled: true
-        runner:
-          labels:
-            - "ubuntu-22.04:docker://gitea/runner-images:ubuntu-22.04-full"
-
 gitea:
   admin:
     existingSecret: gitea-secret
