@@ -38,3 +38,10 @@ k3s_controller_config:
   group: staff
 
 k3s_uninstall: false
+
+# Node updates cordon and drain before the binary is swapped, then wait for
+# Ready and uncordon. k3s's own upgrade docs are explicit that the install
+# script does not do this and the caller must. Set false to skip it -- the
+# update then behaves as it did before 2.0.0.
+k3s_drain_enabled: true
+k3s_drain_timeout: 300

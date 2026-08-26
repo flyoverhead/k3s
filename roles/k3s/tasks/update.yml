@@ -1,5 +1,34 @@
 ---
 
+# Ordered deliberately: drain, stop, swap, wait for Ready, uncordon. k3s's
+# upgrade documentation states the install script does not cordon or drain and
+# that the caller must do both, so this is the collection's job.
+#
+# The three cluster-facing tasks share one guard set. k3s_cluster_size is a
+# string from Jinja, hence the `| int`. A single-node cluster is skipped
+# because draining the only node evicts every pod with nowhere to reschedule
+# it.
+- name: update | drain node
+  become: true
+  become_user: '{{ k3s_controller_config.owner }}'
+  delegate_to: '{{ k3s_controller_config.address }}'
+  kubernetes.core.k8s_drain:
+    name: '{{ inventory_hostname }}'
+    state: drain
+    delete_options:
+      # cilium, kube-vip and csi-smb are DaemonSets and cannot be evicted, so
+      # without this the drain never completes.
+      ignore_daemonsets: true
+      delete_emptydir_data: true
+      force: true
+      wait_timeout: '{{ k3s_drain_timeout | int }}'
+    kubeconfig: '{{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}'
+    validate_certs: false
+  when:
+    - k3s_drain_enabled
+    - k3s_cluster_configured
+    - k3s_cluster_size | int > 1
+
 - name: update | stop k3s service
   become: true
   ansible.builtin.systemd_service:
@@ -21,5 +50,44 @@
   notify:
     - k3s | restart
 
-- name: handlers
+- name: update | restart k3s service
   ansible.builtin.meta: flush_handlers
+
+- name: update | wait for node Ready
+  become: true
+  become_user: '{{ k3s_controller_config.owner }}'
+  delegate_to: '{{ k3s_controller_config.address }}'
+  kubernetes.core.k8s_info:
+    kind: Node
+    name: '{{ inventory_hostname }}'
+    wait: true
+    wait_condition:
+      type: Ready
+      status: true
+      reason: KubeletReady
+    wait_timeout: '{{ k3s_drain_timeout | int }}'
+    kubeconfig: '{{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}'
+    validate_certs: false
+  when:
+    - k3s_drain_enabled
+    - k3s_cluster_configured
+    - k3s_cluster_size | int > 1
+
+# Deliberately NOT in an `always` block. If the node does not come back Ready,
+# leaving it cordoned is correct -- workloads must not schedule onto a
+# half-upgraded node, and serial: 1 stops the play before another node is
+# touched. Recover with:
+#   kubectl uncordon <node>
+- name: update | uncordon node
+  become: true
+  become_user: '{{ k3s_controller_config.owner }}'
+  delegate_to: '{{ k3s_controller_config.address }}'
+  kubernetes.core.k8s_drain:
+    name: '{{ inventory_hostname }}'
+    state: uncordon
+    kubeconfig: '{{ k3s_controller_config.path }}/{{ k3s_controller_config.name }}'
+    validate_certs: false
+  when:
+    - k3s_drain_enabled
+    - k3s_cluster_configured
+    - k3s_cluster_size | int > 1
