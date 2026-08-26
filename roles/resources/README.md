@@ -4,10 +4,10 @@ Applies Kubernetes manifests to the cluster: from `resource_definition` dicts, t
 
 ## Role variables
 
-| Variable | Description |
-| :--- | :--- |
+| Variable | Description | Default |
+| :--- | :--- | :--- |
 | `resources_kubeconfig_local_path` | Path to kubeconfig on the controller | `~/.kube/config` |
-| `resources_definition` | List of manifests to apply; empty list by default |
+| `resources_definition` | List of manifests to apply | `[]` |
 
 Each entry in `resources_definition` supports these keys:
 

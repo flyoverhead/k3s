@@ -4,10 +4,10 @@ Manages Helm repositories and chart releases: adds or updates repository endpoin
 
 ## Role variables
 
-| Variable | Description |
-| :--- | :--- |
+| Variable | Description | Default |
+| :--- | :--- | :--- |
 | `helm_kubeconfig_local_path` | Path to kubeconfig on the controller | `~/.kube/config` |
-| `helm_charts` | List of chart releases to install or upgrade; empty list by default |
+| `helm_charts` | List of chart releases to install or upgrade | `[]` |
 
 Each entry in `helm_charts` supports these keys:
 

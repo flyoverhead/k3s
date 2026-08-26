@@ -4,10 +4,10 @@ Applies JSON patches (RFC 6902) against existing cluster resources: add, remove 
 
 ## Role variables
 
-| Variable | Description |
-| :--- | :--- |
+| Variable | Description | Default |
+| :--- | :--- | :--- |
 | `patches_kubeconfig_local_path` | Path to kubeconfig on the controller | `~/.kube/config` |
-| `patches_definition` | List of patches to apply; empty list by default |
+| `patches_definition` | List of patches to apply | `[]` |
 
 Each entry in `patches_definition` supports these keys:
 

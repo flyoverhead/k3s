@@ -72,6 +72,16 @@ Use `flyoverhead.k3s.helm`, `flyoverhead.k3s.resources` and `flyoverhead.k3s.pat
     - role: flyoverhead.k3s.patches
 ```
 
+## Collection variables
+
+These variables control cluster-wide behavior. They live in `playbooks/vars/main.yml` and can be overridden per-play.
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `k3s_agent_serial` | `1` | Agents per task run (raise to parallelise a first build; serial is play-level and cannot be conditional on update vs. install) |
+| `k3s_apps_enabled` | `true` | Deploy the optional app stack (pihole, minio, gitea, registry, csi-smb, external-dns); the test harness sets false to scope to the core cluster |
+| `k3s_timezone` | `Etc/UTC` | Timezone used by pihole and other apps that consume it; set this before deploy if the cluster runs in a different region |
+
 ## 🖥 Supported OS
 
 | OS | Status |
