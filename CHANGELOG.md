@@ -2,6 +2,27 @@
 
 All notable changes to `flyoverhead.k3s`.
 
+## 3.0.0
+
+Breaking: the bundled playbooks moved from `playbooks/tasks/` to
+`playbooks/plays/`. The documented entry point, `playbooks/playbook.yml`, is
+unchanged -- only a playbook that imported a sub-play by path needs updating.
+
+### Changed
+
+- **`playbooks/tasks/` -> `playbooks/plays/`.** The directory held plays, not task files, and ansible-lint infers file kind from the path, so the reserved `tasks/` name made it parse each play as a task list: `schema[tasks]: 'block' is a required property` and `parser-error: conflicting action statements: hosts, roles`. Import paths in `playbooks/playbook.yml` were updated to match.
+- **`hosts:` now uses native host patterns.** `'{{ groups[k3s_server_group][0] }}'` became `'{{ k3s_server_group }}[0]'`, which no longer needs the inventory resolved at parse time. Host selection is unchanged, verified against a 3-server/2-agent inventory: `k3s_server` -> all three, `k3s_server[0]` -> the first, `k3s_server[1:]` -> the rest, `k3s_agent` -> both agents. `ha.yml` and `agent.yml` keep `order: inventory`.
+- **`config.yml` and `uninstall.yml` default their group vars** to the same values `roles/k3s/defaults/main.yml` already declares, so each play is lintable standalone.
+
+### Fixed
+
+- **ansible-lint passes the production profile with 0 failures**, down from 10. Commits to this repository no longer need `--no-verify` to get past the pre-commit chain.
+- Trailing whitespace in `playbooks/templates/external-dns/values.j2`.
+
+### Known issues
+
+- **A mistyped group name now skips a play instead of failing it.** `groups[missing_group]` raised a hard error; a host pattern that matches nothing warns and skips. `ha`, `single` and `agent` are still caught by the `when: groups[...] | length > 0` guards in `playbooks/playbook.yml`, but `config.yml` and `uninstall.yml` have no such guard.
+
 ## 2.2.0
 
 ### Changed
