@@ -1,13 +1,13 @@
 ---
 
 - name: deploy master node
-  hosts: '{{ groups[k3s_server_group][0] }}'
+  hosts: '{{ k3s_server_group }}[0]'
 
   roles:
     - role: k3s
 
 - name: deploy server nodes
-  hosts: '{{ groups[k3s_server_group][1:] }}'
+  hosts: '{{ k3s_server_group }}[1:]'
   serial: 1
   order: inventory
 

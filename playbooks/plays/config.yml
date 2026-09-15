@@ -1,7 +1,7 @@
 ---
 
 - name: configure cluster
-  hosts: '{{ groups[k3s_server_group][0] }}'
+  hosts: '{{ k3s_server_group | default("k3s_server") }}[0]'
 
   tasks:
 
