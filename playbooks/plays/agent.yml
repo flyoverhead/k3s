@@ -5,7 +5,7 @@
 # initial agent join sequential. That is the cost of never stopping k3s on two
 # agents at once; raise k3s_agent_serial for a first build in a hurry.
 - name: deploy agent node
-  hosts: '{{ groups[k3s_agent_group] }}'
+  hosts: '{{ k3s_agent_group }}'
   serial: '{{ k3s_agent_serial | default(1) }}'
   order: inventory
 
