@@ -1,6 +1,6 @@
 ---
 
-patches_kubeconfig_local_path: '{{ ansible_user_dir }}/.kube/config'
+patches_kubeconfig_local_path: '{{ ansible_facts.user_dir }}/.kube/config'
 
 patches_definition: []
   # - name: coredns

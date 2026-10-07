@@ -1,6 +1,6 @@
 ---
 
-helm_kubeconfig_local_path: '{{ ansible_user_dir }}/.kube/config'
+helm_kubeconfig_local_path: '{{ ansible_facts.user_dir }}/.kube/config'
 
 helm_charts: []
   # - name: cilium
