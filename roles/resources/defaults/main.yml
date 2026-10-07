@@ -1,6 +1,6 @@
 ---
 
-resources_kubeconfig_local_path: '{{ ansible_user_dir }}/.kube/config'
+resources_kubeconfig_local_path: '{{ ansible_facts.user_dir }}/.kube/config'
 
 resources_definition: []
   # - name: calico

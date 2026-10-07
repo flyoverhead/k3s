@@ -2,6 +2,16 @@
 
 All notable changes to `flyoverhead.k3s`.
 
+## 3.0.1
+
+### Fixed
+
+- **Facts are read through `ansible_facts`.** The `helm`, `patches` and
+  `resources` defaults built their kubeconfig path from the injected
+  `ansible_user_dir`, which ansible-core 2.21 deprecates and 2.24 removes. They
+  now use `ansible_facts.user_dir`; the path is unchanged.
+- The README version badge read 2.2.0 since the 3.0.0 release.
+
 ## 3.0.0
 
 Breaking: the bundled playbooks moved from `playbooks/tasks/` to
